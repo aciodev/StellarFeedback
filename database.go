@@ -24,6 +24,17 @@ type Config struct {
 	Password string `mapstructure:"PASSWORD"`
 	Database string `mapstructure:"DATABASE"`
 	HttpPort string `mapstructure:"HTTP_PORT"`
+	Token    string `mapstructure:"TOKEN"`
+}
+
+// DatabaseReport - The structural representation of the SQL table.
+type DatabaseReport struct {
+	Id        int
+	CreatedAt string
+	Title     string
+	Body      string
+	Link      string
+	Version   string
 }
 
 // LoadConfig - Loads the config at a given path, returning the
@@ -76,4 +87,76 @@ func LogFeedback(report BugReport) bool {
 	}
 
 	return true
+}
+
+// GetRecentFeedback - Gets the recent feedback from the database.
+func GetRecentFeedback() []DatabaseReport {
+	db := ConnectPostgres()
+	if db == nil {
+		log.Println("Cannot connect to PostgreSQL!")
+		_ = db.Close()
+		return []DatabaseReport{}
+	}
+
+	defer db.Close()
+
+	rows, err := db.Query("SELECT id,created_at,title,body,link,version FROM log ORDER BY id desc LIMIT 10")
+
+	if err != nil {
+		log.Println("Query:", err)
+		return []DatabaseReport{}
+	}
+
+	defer rows.Close()
+	reports := reportsFromRow(rows)
+	return reports
+}
+
+// GetFeedbackBefore - Gets feedback from the database before a given id.
+func GetFeedbackBefore(id int) []DatabaseReport {
+	db := ConnectPostgres()
+	if db == nil {
+		log.Println("Cannot connect to PostgreSQL!")
+		_ = db.Close()
+		return []DatabaseReport{}
+	}
+
+	defer db.Close()
+
+	rows, err := db.Query("SELECT id,created_at,title,body,link,version FROM log WHERE id < $1 ORDER BY id desc LIMIT 10", id)
+
+	if err != nil {
+		log.Println("Query:", err)
+		return []DatabaseReport{}
+	}
+
+	defer rows.Close()
+	reports := reportsFromRow(rows)
+	return reports
+}
+
+// reportsFromRow - Private helper method to scan sql.Row objects into
+// structs. This data is then marshalled into JSON for the request.
+func reportsFromRow(rows *sql.Rows) []DatabaseReport {
+	reports := make([]DatabaseReport, 0)
+
+	var id int
+	var createdAt string
+	var title string
+	var body string
+	var link string
+	var version string
+
+	for rows.Next() {
+		err := rows.Scan(&id, &createdAt, &title, &body, &link, &version)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		var report = DatabaseReport{id, createdAt, title, body, link, version}
+		reports = append(reports, report)
+	}
+
+	return reports
 }
