@@ -69,8 +69,8 @@ func ConnectPostgres() *sql.DB {
 	return db
 }
 
-// LogFeedback - Logs the feedback for a given BugReport.
-func LogFeedback(report BugReport) bool {
+// LogFeedback - Logs the feedback for a given UserFeedback.
+func LogFeedback(report UserFeedback) bool {
 	db := ConnectPostgres()
 	if db == nil {
 		log.Println("Cannot connect to PostgreSQL!")

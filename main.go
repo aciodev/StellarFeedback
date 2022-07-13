@@ -13,8 +13,8 @@ import (
 
 var TOKEN = ""
 
-// BugReport - Represents the HTTP/POST request for the feedbackLogHandler.
-type BugReport struct {
+// UserFeedback - Represents the HTTP/POST request for the feedbackLogHandler.
+type UserFeedback struct {
 	Title   string
 	Body    string
 	Link    string
@@ -87,7 +87,7 @@ func setupHttpServer(config Config) {
 func feedbackLogHandler(w http.ResponseWriter, req *http.Request) {
 	decoder := json.NewDecoder(req.Body)
 
-	var data BugReport
+	var data UserFeedback
 	err := decoder.Decode(&data)
 
 	if err != nil {
