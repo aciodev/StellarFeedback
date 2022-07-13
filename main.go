@@ -13,7 +13,7 @@ import (
 
 var TOKEN = ""
 
-// BugReport - Represents the HTTP/POST request for the feedbackHandler.
+// BugReport - Represents the HTTP/POST request for the feedbackLogHandler.
 type BugReport struct {
 	Title   string
 	Body    string
@@ -61,7 +61,7 @@ func setupHttpServer(config Config) {
 	}
 
 	postMux := baseMux.Methods(http.MethodPost).Subrouter()
-	postMux.HandleFunc("/feedback", feedbackHandler)
+	postMux.HandleFunc("/feedback", feedbackLogHandler)
 
 	getMux := baseMux.Methods(http.MethodGet).Subrouter()
 	getMux.HandleFunc("/list", feedbackListHandler)
@@ -82,9 +82,9 @@ func setupHttpServer(config Config) {
 	_ = s.Shutdown(nil)
 }
 
-// feedbackHandler - Handles the feedback request from the Stellar
+// feedbackLogHandler - Handles the feedback request from the Stellar
 // client. Can return a 400, 201 or 503.
-func feedbackHandler(w http.ResponseWriter, req *http.Request) {
+func feedbackLogHandler(w http.ResponseWriter, req *http.Request) {
 	decoder := json.NewDecoder(req.Body)
 
 	var data BugReport
